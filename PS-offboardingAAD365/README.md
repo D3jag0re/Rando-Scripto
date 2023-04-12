@@ -1,4 +1,4 @@
-#PS Offboarding Script for AzureAD (AAD) / 365 
+# PS Offboarding Script for AzureAD (AAD) / 365 
 
 - [] Put x in front of display name 
 - [] Reset Password 
