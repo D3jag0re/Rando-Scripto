@@ -8,3 +8,5 @@
 - [] Release Licenses 
 - [] Convert to Shared Mailbox
 - [] Delegate Access to mailbozx (if req) 
+
+Use Graph as AzureAD and EOL modules are being deprecated in June 2023. 
