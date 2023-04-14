@@ -1,8 +1,13 @@
 # Connect to MS Graph 
 Connect-MgGraph -Scopes "Directory.ReadWrite.All"
+# "Directory.AccessAsUser.All" needed for pw reset tho 
+# Also "User.ReadWrite.All","Group.ReadWrite.All" for the groups 
+# see ms docs for signing into more than one at once. get-credential (once) then connect while passing in those creds 
 
-# Prompt For User Principal Name (email)
+# Prompt For User Principal Name (email) / Forwarding (Y/N) / and Forwarding Adress
 $upn = Read-Host "Enter the user principal name (UPN) of the user whose display name you want to update"
+# Forwarding 
+# Forwarding Adress $fadd
 
 # Get the user object from Azure AD
 $user = Get-MgUser -UserId $upn 
@@ -43,5 +48,29 @@ function Generate-Password {
 $newpass = ConvertTo-SecureString -String $newpass -AsPlainText -Force
 
 # Set new password
-Update-MgDUserPassword -UserId $upn -Password $newpass
+Update-MgUser -UserId $upn -PasswordProfile @{ Password = $newpass }
+# See if we can or need to add ForceChangePasswordNextSignIn = $false or if it even matters ? defaults to true anyway 
+
+# Disable Account / Block Sign In 
+Update-MgUser -UserID $upn -AccountEnabled:$false
+
+# ------------------------------------------------------------------------------------
+# Exchange Online Commands 
+# Might need to start script with multi-acct sign ins 
+
+Connect-ExchangeOnline
+
+# Set Forwarding 
+Set-Mailbox $upn -ForwardingAddress $fadd 
+
+# Set Shared Mailbox 
+Set-Mailbox $upn -Type Shared
+
+# Delegate Access 
+Add-MailboxPermission $upn -User "Mail Recipient" -AccessRights FullAccess -InheritanceType all
+
+# -----------------------------------------------------------------------------------------
+
+# Remove Licenses 
+# See "manageM365licenses" for function (Action  8)
 
