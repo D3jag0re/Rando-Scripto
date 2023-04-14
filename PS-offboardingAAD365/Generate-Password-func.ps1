@@ -24,3 +24,4 @@ function Generate-Password {
     }
 }
 Generate-Password 
+#-Length 8 -Count 5
