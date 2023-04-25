@@ -18,7 +18,7 @@ $user.DisplayName = "x " + $user.DisplayName
 # Update the user profile in Azure AD
 Update-MgUser -UserId $user.Id -Displayname $user.Displayname
 
-# create new password
+# Create new password
 function Generate-Password {
     param(
         [int]$Length = 12,
