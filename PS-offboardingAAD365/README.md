@@ -20,3 +20,8 @@ Eventually would like to be able to call on just some of them (make all function
 Feedback on each step would be helpful for helpdesk\ 
 Output to a file may be helpful\
 Bulk Operations
+
+# V2:
+
+ - [ ] Visual feedback as script executes 
+ - [ ] Write output to file 
