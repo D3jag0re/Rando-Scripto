@@ -98,7 +98,7 @@ function Generate_Password {
             }
         }
         $global:newpass = -join $PasswordChars
-        #Write-Output Password Changed To: $newpass
+        Write-Output Password Changing To: $global:newpass
     }
 }
 
@@ -106,7 +106,7 @@ function Generate_Password {
 function Set_Password {
     $global:newpass = ConvertTo-SecureString -String $global:newpass -AsPlainText -Force
     Update-MgUser -UserId $global:upn -PasswordProfile @{ Password = $global:newpass }
-    Write-Host Password Changed to $global:newpass -ForegroundColor Green
+    Write-Host Password Changed -ForegroundColor Green
 }
 # See if we can or need to add ForceChangePasswordNextSignIn = $false or if it even matters ? defaults to true anyway 
 
