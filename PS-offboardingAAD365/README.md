@@ -4,12 +4,12 @@
 - [X] Reset Password 
 - [X] Block sign in 
 - [X] Set Email forwarding 
-- [ ] Remove User from all groups 
 - [X] Release Licenses 
 - [X] Convert to Shared Mailbox
 - [X] Delegate Access to mailbozx (if req) 
-- [ ] Put all user input and connections at beginning 
-- [ ] Conditional Mail forwarding and Delegation 
+- [ ] Put all user input and connections at beginning (Half. conditions yes, connections no)
+- [X] Conditional Mail forwarding and Delegation 
+- [X] Visual Feedback as script executes 
 
 
 Use Graph and EOL modules.  
@@ -17,12 +17,12 @@ Look into ways to have a SSO for both services which require connection (cert ba
 
 Future: 
 
+Be able to pass through upn and forward / delegation info in command line\
 Eventually would like to be able to call on just some of them (make all functions) with more variables to pass through\
-Feedback on each step would be helpful for helpdesk\ 
-Output to a file may be helpful\
 Bulk Operations
 
 # V2:
 
- - [ ] Visual feedback as script executes 
- - [ ] Write output to file 
+ - [ ] Write output to file in Blob Storage for Tracking 
+ - [ ] Create "Undo" command ? Would have to store current config in order to revert 
+ - [ ] Remove User from all groups (Lots of issues with Graph Permissions here)
