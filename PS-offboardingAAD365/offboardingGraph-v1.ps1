@@ -1,25 +1,82 @@
-# Connect to MS Graph 
-Connect-MgGraph -Scopes "Directory.ReadWrite.All"
-# "Directory.AccessAsUser.All" needed for pw reset tho 
-# Also "User.ReadWrite.All","Group.ReadWrite.All" for the groups 
-# see ms docs for signing into more than one at once. get-credential (once) then connect while passing in those creds 
+# Offboarding Script For AAD / O365 
 
-# Prompt For User Principal Name (email) / Forwarding (Y/N) / and Forwarding Adress
-$upn = Read-Host "Enter the user principal name (UPN) of the user whose display name you want to update"
-# Forwarding 
-# Forwarding Adress $fadd
+# ---------------------------------- #
+# Functions 
+# ---------------------------------- #
 
-# Get the user object from Azure AD
-$user = Get-MgUser -UserId $upn 
+# This checks if the correct modules are installed in order to run the script. Prompts for install if not, and then connects to the service.
 
-# Update the display name
-$user.DisplayName = "x " + $user.DisplayName
+function Connect_MgGraph {
+    $Module = ((Get-Module -Name Microsoft.Graph.Identity.DirectoryManagement -ListAvailable) -and (Get-Module -Name Microsoft.Graph.Users -ListAvailable) -and (Get-Module -Name Microsoft.Graph.Users.Actions -ListAvailable))
+    if ($Module -eq $false) { 
+        Write-Host "Microsoft Graph PowerShell module is not available"  -ForegroundColor yellow  
+        $Confirm = Read-Host "Are you sure you want to install module? [Y] Yes [N] No" 
+        if ($Confirm -match "[yY]") { 
+            Write-host "Installing Microsoft Graph PowerShell module"
+            Install-Module Microsoft.Graph -Scope AllUsers -AllowClobber -Force
+        } 
+        else { 
+            Write-Host "Microsoft Graph module is required use Graph api.Please install module using Install-Module Microsoft.Graph cmdlet." -ForegroundColor Red
+            Exit
+        }
+    }
+    Write-Progress "Importing Required Modules..."
+    Import-Module -Name Microsoft.Graph.Identity.DirectoryManagement
+    Import-Module -Name Microsoft.Graph.Users
+    Import-Module -Name Microsoft.Graph.Users.Actions
+    Write-Progress "Connecting MgGraph Module..."
+    Connect-MgGraph -Scopes Directory.ReadWrite.All, User.ReadWrite.All, Group.ReadWrite.All, Directory.AccessAsUser.All
+    Select-MgProfile -Name "beta"
+}
 
-# Update the user profile in Azure AD
-Update-MgUser -UserId $user.Id -Displayname $user.Displayname
+# Gather The User Info (need to implement forwarding and delegation option)
+function user_info {
+    $global:upn = Read-Host "Enter the user principal name (UPN) of the user who is being offboarded"
+    
+    # Get the user object from Azure AD
+    $global:user = Get-MgUser -UserId $global:upn 
+    Write-Host $global:upn selected 
 
-# Create new password
-function Generate-Password {
+    # Forwarding 
+    do {
+        $fwdbool = Read-Host "Does The User Mailbox Need To Be Forwarded? [Y] Yes [N] No"
+        if ($fwdbool -notin 'Y', 'y', 'N', 'n') {
+            Write-Host "Please enter a valid response."
+        }
+    } while ($fwdbool -notin 'Y', 'y', 'N', 'n')
+
+    if ($fwdbool -in 'Y', 'y') {
+        $fadd = Read-Host "Enter forwarding email address. If none, leave blank: "
+    }
+    else {
+        Write-Host "No Forwarding Address Found, Mailbox Not Not Be Forwarded"
+    }
+    # Delegation
+    do {
+        $delbool = Read-Host "Does The User Mailbox Need To Be Delegated To Another User? [Y] Yes [N] No"
+        if ($fwdbool -notin 'Y', 'y', 'N', 'n') {
+            Write-Host "Please enter a valid response."
+        }
+    } while ($fwdbool -notin 'Y', 'y', 'N', 'n')
+
+    if ($fwdbool -in 'Y', 'y') {
+        $dadd = Read-Host "Enter email address for user delegation: "
+    }
+    else {
+        Write-Host "No Delegation Address Entered, Mailbox Will Not Be Delegated"
+    } 
+}
+
+# Update the display name and user profile
+function display_name {
+    $global:user.DisplayName = "x " + $global:user.DisplayName
+    Update-MgUser -UserId $global:user.Id -Displayname $global:user.Displayname
+    Write-Host "Display Name Updated" -ForegroundColor Green
+}
+
+
+# Password Generator Function
+function Generate_Password {
     param(
         [int]$Length = 12,
         [int]$Count = 1
@@ -40,37 +97,103 @@ function Generate-Password {
                 4 { $PasswordChars += $SpecialChars | Get-Random }
             }
         }
-        $newpass = -join $PasswordChars
-        Write-Output $newpass
+        $global:newpass = -join $PasswordChars
+        #Write-Output Password Changed To: $newpass
     }
 }
 
-$newpass = ConvertTo-SecureString -String $newpass -AsPlainText -Force
-
 # Set new password
-Update-MgUser -UserId $upn -PasswordProfile @{ Password = $newpass }
+function Set_Password {
+    $global:newpass = ConvertTo-SecureString -String $global:newpass -AsPlainText -Force
+    Update-MgUser -UserId $global:upn -PasswordProfile @{ Password = $global:newpass }
+    Write-Host Password Changed to $global:newpass -ForegroundColor Green
+}
 # See if we can or need to add ForceChangePasswordNextSignIn = $false or if it even matters ? defaults to true anyway 
 
 # Disable Account / Block Sign In 
-Update-MgUser -UserID $upn -AccountEnabled:$false
+function disable_signon {
+    Update-MgUser -UserID $global:upn -AccountEnabled:$false
+    Write-Host "User sign-In Blocked" -ForegroundColor Green
+}
 
-# ------------------------------------------------------------------------------------
-# Exchange Online Commands 
+# ------------------------- #
+# Exchange Online Functions
+# ------------------------- #
+
+# connect to EOL 
 # Might need to start script with multi-acct sign ins 
-
-Connect-ExchangeOnline
+# Make this function like graphs where it checks for module
+function Connect_EOL {
+    Connect-ExchangeOnline 
+}
 
 # Set Forwarding 
-Set-Mailbox $upn -ForwardingAddress $fadd 
+function mail_forward {
+    if ($fadd) {
+        Set-Mailbox $global:upn -ForwardingAddress $fadd
+        Write-Host Mailbox Successfully forwarded to $fadd -ForegroundColor Green
+    }
+    else {
+        Write-Host "No Forwarding Address Found, Mailbox Not Forwarded" -ForegroundColor Yellow 
+    }
+}
+
 
 # Set Shared Mailbox 
-Set-Mailbox $upn -Type Shared
+function shared_mailbox {
+    Set-Mailbox $global:upn -Type Shared 
+    Write-Host "Mailbox Converted To Shared Mailbox Successfully" -ForegroundColor Green
+}
 
 # Delegate Access 
-Add-MailboxPermission $upn -User "Mail Recipient" -AccessRights FullAccess -InheritanceType all
-
-# -----------------------------------------------------------------------------------------
+function delegate_mailbox {
+    if ($dadd) {
+        Add-MailboxPermission $global:upn -User $dadd -AccessRights FullAccess -InheritanceType all
+        Write-Host Mailbox Successfully delegated to $dadd -ForegroundColor Green
+    }
+    else {
+        Write-Host "No Delegation Account Found, Mailbox Not Delegated" -ForegroundColor Yellow
+    }
+}
 
 # Remove Licenses 
-# See "manageM365licenses" for function (Action  8)
+function remove_licenses{   
+    if ($global:user -eq $null) {
+           Write-Host User $global:upn does not exist. Please check the user name. -ForegroundColor Red
+                }
+                else {
+                    $Licenses = Get-MgUserLicenseDetail -UserId $global:upn
+                    $Licenses = $Licenses.SkuID
+                    $SkuPartNumber = @()
+                    if ($Licenses.count -eq 0) {
+                        Write-Host No license assigned to the user $global:upn. 
+                    }
+                    else {
+                        foreach ($Temp in $Licenses) {
+                            #$SkuPartNumber += $SkuIdHash[$Temp] - get this working to show which licenses are being removed 
+                        }
+                        $SkuPartNumber = $SkuPartNumber -join (",")
+                        Write-Host Removing $SkuPartNumber license from $global:upn
+                        Set-MgUserLicense -UserId $global:upn -RemoveLicenses @($Licenses) -AddLicenses @() | Out-Null
+                        Write-Host Licenses Removed -ForegroundColor Green                        
+                    }
+                }
+   }
 
+
+function main() {
+    Disconnect-MgGraph
+    Connect_MgGraph
+    user_info
+    display_name
+    Generate_Password
+    Set_Password
+    disable_signon
+    Connect_EOL
+    mail_forward
+    shared_mailbox
+    delegate_mailbox
+    remove_licenses
+}
+
+. main 

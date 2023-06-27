@@ -5,7 +5,7 @@
 - [X] Block sign in 
 - [X] Set Email forwarding 
 - [ ] Remove User from all groups 
-- [ ] Release Licenses 
+- [X] Release Licenses 
 - [X] Convert to Shared Mailbox
 - [X] Delegate Access to mailbozx (if req) 
 - [ ] Put all user input and connections at beginning 
@@ -13,6 +13,7 @@
 
 
 Use Graph and EOL modules.  
+Look into ways to have a SSO for both services which require connection (cert based auth for EOL?) 
 
 Future: 
 
