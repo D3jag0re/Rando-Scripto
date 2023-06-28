@@ -34,8 +34,13 @@ function user_info {
     $global:upn = Read-Host "Enter the user principal name (UPN) of the user who is being offboarded"
     
     # Get the user object from Azure AD
-    $global:user = Get-MgUser -UserId $global:upn 
-    Write-Host $global:upn selected 
+    try {
+        $global:user = Get-MgUser -UserId $global:upn 
+        Write-Host $global:upn selected 
+    }
+    catch {
+        throw 
+    }
 
     # Forwarding 
     do {
@@ -46,7 +51,7 @@ function user_info {
     } while ($fwdbool -notin 'Y', 'y', 'N', 'n')
 
     if ($fwdbool -in 'Y', 'y') {
-        $fadd = Read-Host "Enter forwarding email address. If none, leave blank: "
+        $global:fadd = Read-Host "Enter forwarding email address. If none, leave blank: "
     }
     else {
         Write-Host "No Forwarding Address Found, Mailbox Not Not Be Forwarded"
@@ -54,13 +59,13 @@ function user_info {
     # Delegation
     do {
         $delbool = Read-Host "Does The User Mailbox Need To Be Delegated To Another User? [Y] Yes [N] No"
-        if ($fwdbool -notin 'Y', 'y', 'N', 'n') {
+        if ($delbool -notin 'Y', 'y', 'N', 'n') {
             Write-Host "Please enter a valid response."
         }
-    } while ($fwdbool -notin 'Y', 'y', 'N', 'n')
+    } while ($delbool -notin 'Y', 'y', 'N', 'n')
 
-    if ($fwdbool -in 'Y', 'y') {
-        $dadd = Read-Host "Enter email address for user delegation: "
+    if ($delbool -in 'Y', 'y') {
+        $global:dadd = Read-Host "Enter email address for user delegation: "
     }
     else {
         Write-Host "No Delegation Address Entered, Mailbox Will Not Be Delegated"
@@ -68,11 +73,23 @@ function user_info {
 }
 
 # Update the display name and user profile
+#function display_name {
+#    $global:user.DisplayName = "x " + $global:user.DisplayName
+#    Update-MgUser -UserId $global:user.Id -Displayname $global:user.Displayname
+#    Write-Host "Display Name Updated" -ForegroundColor Green
+#}
 function display_name {
-    $global:user.DisplayName = "x " + $global:user.DisplayName
-    Update-MgUser -UserId $global:user.Id -Displayname $global:user.Displayname
-    Write-Host "Display Name Updated" -ForegroundColor Green
+    try {
+        $global:user.DisplayName = "x " + $global:user.DisplayName
+        Update-MgUser -UserId $global:user.Id -Displayname $global:user.Displayname
+        Write-Host "Display Name Updated" -ForegroundColor Green
+    }
+    catch {
+        #Write-Host "An error occurred: $_" -ForegroundColor Red
+        throw 
+    }
 }
+
 
 
 # Password Generator Function
@@ -124,20 +141,19 @@ function disable_signon {
 # Might need to start script with multi-acct sign ins 
 # Make this function like graphs where it checks for module
 function Connect_EOL {
-    Connect-ExchangeOnline 
+    Connect-ExchangeOnline -ShowBanner:$false
 }
 
 # Set Forwarding 
 function mail_forward {
-    if ($fadd) {
-        Set-Mailbox $global:upn -ForwardingAddress $fadd
-        Write-Host Mailbox Successfully forwarded to $fadd -ForegroundColor Green
+    if ($global:fadd) {
+        Set-Mailbox $global:upn -ForwardingAddress $global:fadd
+        Write-Host Mailbox Successfully forwarded to $global:fadd -ForegroundColor Green
     }
     else {
         Write-Host "No Forwarding Address Found, Mailbox Not Forwarded" -ForegroundColor Yellow 
     }
 }
-
 
 # Set Shared Mailbox 
 function shared_mailbox {
@@ -147,9 +163,9 @@ function shared_mailbox {
 
 # Delegate Access 
 function delegate_mailbox {
-    if ($dadd) {
-        Add-MailboxPermission $global:upn -User $dadd -AccessRights FullAccess -InheritanceType all
-        Write-Host Mailbox Successfully delegated to $dadd -ForegroundColor Green
+    if ($global:dadd) {
+        Add-MailboxPermission $global:upn -User $global:dadd -AccessRights FullAccess -InheritanceType all
+        Write-Host Mailbox Successfully delegated to $global:dadd -ForegroundColor Green
     }
     else {
         Write-Host "No Delegation Account Found, Mailbox Not Delegated" -ForegroundColor Yellow
