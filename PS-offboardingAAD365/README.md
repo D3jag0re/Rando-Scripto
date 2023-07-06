@@ -3,7 +3,7 @@
 - [X] Put x in front of display name 
 - [X] Reset Password 
 - [X] Block sign in 
-- [X] Set Email forwarding 
+- [X] Set Email forwarding (if req)
 - [X] Release Licenses 
 - [X] Convert to Shared Mailbox
 - [X] Delegate Access to mailbozx (if req) 
@@ -34,4 +34,4 @@ Bulk Operations
  - [ ] Write output to file in Blob Storage for Tracking 
  - [ ] Create "Undo" command ? Would have to store current config in order to revert 
  - [ ] Remove User from all groups (Lots of issues with Graph Permissions here)
- - [ ] Connect with Freshdesk API to fully automate 
+ - [ ] Connect with Freshdesk API to fully automate
