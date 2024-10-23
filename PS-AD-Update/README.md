@@ -22,3 +22,4 @@ Fields:
 | Work Contact: Work Email     | mail               |
 
 - Manager format is CN=manager Name, OU=of manager, DC=trillium, DC=local
+- Also needs: Display Name, Description with Last then First Name, phone number
