@@ -21,5 +21,5 @@ Fields:
 | Position Status              |                    | 
 | Work Contact: Work Email     | mail               |
 
-- Manager format is CN=manager Name, OU=of manager, DC=trillium, DC=local
-- Also needs: Display Name, Description with Last then First Name, phone number
+- Manager format is CN=manager Name, OU=of manager, DC=trillium, DC=local. Possibly query based off two fields and pull. 
+- Also needs: Display Name, Description with Last then First Name, phone number, user logon name (5char of last, first initial)
