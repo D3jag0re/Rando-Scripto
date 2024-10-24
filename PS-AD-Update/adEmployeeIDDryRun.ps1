@@ -24,7 +24,7 @@ foreach ($user in $users) {
     # If the user is found in AD
     if ($adUser) {
         # Dry run - simulate what would happen
-        $message = "Dry Run: Would update employeeID for $($adUser.SamAccountName) with File Number: $fileNumber at $(Get-Date)"
+        $message = "Dry Run: Would update employeeID for $($adUser.SamAccountName) with File Number: $fileNumber"
         Write-Host $message
         Add-Content -Path $logFilePath -Value $message
         
@@ -32,7 +32,7 @@ foreach ($user in $users) {
         # Set-ADUser -Identity $adUser -EmployeeID $fileNumber
     } else {
         # Log and print the failure (user not found)
-        $message = "Dry Run: No matching AD user found for email: $email at $(Get-Date)"
+        $message = "Dry Run: No matching AD user found for email: $email"
         Write-Host $message
         Add-Content -Path $logFilePath -Value $message
     }
