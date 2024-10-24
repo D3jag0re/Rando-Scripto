@@ -40,5 +40,3 @@ foreach ($user in $users) {
 # Log the script end time with a timestamp
 $endTime = "Script ended at: $(Get-Date)"
 Add-Content -Path $logFilePath -Value $endTime
-
-
