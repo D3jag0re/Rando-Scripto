@@ -8,6 +8,10 @@ Import-Module ActiveDirectory
 $csvFilePath = "C:\path\to\your\file.csv"
 $logFilePath = "C:\path\to\log.txt"
 
+# Log the script start time with a timestamp
+$startTime = "Script started at: $(Get-Date)"
+Add-Content -Path $logFilePath -Value $startTime
+
 # Import the CSV
 $users = Import-Csv -Path $csvFilePath
 
