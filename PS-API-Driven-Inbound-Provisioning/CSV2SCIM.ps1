@@ -1,4 +1,5 @@
 # Copied and modified from https://github.com/AzureAD/entra-id-inbound-provisioning/blob/main/PowerShell/CSV2SCIM/src/CSV2SCIM.ps1
+# Modifications - Date format for Entra, search "Hire Date" to find.
 <#
 .SYNOPSIS
     Generate and send user data to Microsoft Entra ID Provisioning /bulkUpload API endpoint.
@@ -245,6 +246,13 @@ function ConvertTo-ScimBulkPayload {
 
     process {
         foreach ($obj in $InputObject) {
+
+            # Check and format "Hire Date" if it exists
+            if ($obj."Hire Date") {
+                # Split the date string by '/' and rearrange to yyyyMMdd080000.0Z format
+                $dateParts = $obj."Hire Date" -split '/'
+                $obj."Hire Date" = $dateParts[2] + $dateParts[1] + $dateParts[0] + "080000.0Z"
+            }
 
             $ScimOperationObject = [PSCustomObject][ordered]@{
                 "method" = "POST"

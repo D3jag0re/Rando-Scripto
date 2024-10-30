@@ -1,17 +1,13 @@
 # Copied and modified from https://github.com/AzureAD/entra-id-inbound-provisioning/blob/main/PowerShell/CSV2SCIM/Samples/AttributeMapping.psd1
+# Lots of attributes are created and mapped in the portal using values from here as well (for ex, distinguished name, mail, etc.) or null defaults (company name etc.)
 @{
     externalId   = 'File Number'
     name         = @{
         familyName = 'Legal Last Name'
         givenName  = 'Legal First Name'
     }
-    #active       = { $_.'WorkerStatus' -eq 'Active' }
-    userName     = 'UserID'
-    #displayName  = 'Legal First Name' + 'Legal Last Name'
-    #nickName     = 'UserID'
-    #userType     = 'WorkerType'
+    active       = { $_.'Position Status' -eq 'Active' }
     title        = 'Job Title Description'
-    #mail         = 'Work Contact: Work Email'
     addresses    = @(
         @{
             type          = { 'work' }
@@ -21,21 +17,15 @@
             country       = 'CountryCode'
         }
     )
-    #phoneNumbers = @(
-    #    @{
-    #        type  = { 'work' }
-    #        value = 'OfficePhone'
-    #    }
-    #)
+
     "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User" = @{
-        #employeeID      = 'File Number'
-        #costCenter     = 'CostCenter'
-        #organization   = 'Company'
-        #division       = 'Division'
         department      = 'DEPARTMENT'
-        HireDate        = 'Hire Date'
         #manager        = @{
         #    value = 'ManagerID'
         #}
+    }
+    
+    "urn:ietf:params:scim:schemas:extension:identityman:1.0:User" = @{
+        HireDate = 'Hire Date'
     }
 }
