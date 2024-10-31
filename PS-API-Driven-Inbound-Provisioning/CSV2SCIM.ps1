@@ -1,5 +1,6 @@
 # Copied and modified from https://github.com/AzureAD/entra-id-inbound-provisioning/blob/main/PowerShell/CSV2SCIM/src/CSV2SCIM.ps1
 # Modifications - Date format for Entra, search "Hire Date" to find.
+# Modifications - Lookup manager in csv and populate filenumber/ employeeID for the value. Search for "manager set" to find
 <#
 .SYNOPSIS
     Generate and send user data to Microsoft Entra ID Provisioning /bulkUpload API endpoint.
@@ -242,17 +243,43 @@ function ConvertTo-ScimBulkPayload {
         $paramConvertToScimPayload = @{}
         if ($AttributeMapping) { $paramConvertToScimPayload['AttributeMapping'] = $AttributeMapping }
         $ScimBulkObjectInstance = $ScimBulkObject.psobject.Copy()
+        # Load CSV and create lookup table for manager matching
+        $data = Import-Csv -Path $Path
+        $lookup = @{}
+
+        # Populate the lookup hashtable
+        foreach ($row in $data) {
+            $key = ($row.'Legal First Name' + ' ' + $row.'Legal Last Name').ToLower()
+            $lookup[$key] = $row.'File Number'
     }
+    }
+
 
     process {
         foreach ($obj in $InputObject) {
 
+            # Format Hire date to sync with Entra
             # Check and format "Hire Date" if it exists
             if ($obj."Hire Date") {
                 # Split the date string by '/' and rearrange to yyyyMMdd080000.0Z format
                 $dateParts = $obj."Hire Date" -split '/'
                 $obj."Hire Date" = $dateParts[2] + $dateParts[1] + $dateParts[0] + "080000.0Z"
             }
+
+            # Manager Set - Looks up and matches manager values to grab manager's File Number
+            # Populates "managerID" if a match is found
+            if ($obj."Reports To Legal First Name" -and $obj."Reports To Legal Last Name") {
+                $manKey = ($obj."Reports To Legal First Name" + ' ' + $obj."Reports To Legal Last Name").ToLower()
+            
+                if ($lookup.ContainsKey($manKey)) {
+                    # Set managerID to the matched File Number
+                    $obj."Reports To Legal First Name" = $lookup[$manKey]
+                } else {
+                    # If no match is found, set managerID to null or a placeholder if needed
+                    $obj."Reports To Legal First Name" = $null  # Or "No manager found" if you prefer a placeholder
+                }
+        }
+
 
             $ScimOperationObject = [PSCustomObject][ordered]@{
                 "method" = "POST"

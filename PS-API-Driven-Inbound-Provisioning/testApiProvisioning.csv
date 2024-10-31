@@ -1,4 +1,4 @@
 File Number,Legal First Name,Legal Last Name,Department Number,DEPARTMENT,Department Description,Job Title Description,Reports To Legal First Name,Reports To Legal Last Name,Hire Date,Position Status,Work Contact: Work Email
-66667,Jon,Does,020181,HR,HR,TestUser1,Mike,Pignatiello,28/10/2024,Active,jon.does@TrilliumHCP.com
-77777,Jane,Doe,020182,HR,HR,TestUser2,Mike,Pignatiello,28/10/2024,Active,jane.doe@TrilliumHCP.com
-12345,Ronald,Smith,023545,HR,HR,Looper,Mathew,Brinkworth,29/10/2024,Active,ronald.smith@trilliumhCP.com
+66667,Jon,Does,020181,HR,HR,TestUser1,Jane,Doe,28/10/2024,Active,jon.does@TrilliumHCP.com
+77777,Jane,Doe,020182,HR,HR,TestUser2,Ronald,Smith,28/10/2024,Active,jane.doe@TrilliumHCP.com
+12345,Ronald,Smith,023545,HR,HR,Looper,Jane,Doe,29/10/2024,Active,ronald.smith@trilliumhCP.com

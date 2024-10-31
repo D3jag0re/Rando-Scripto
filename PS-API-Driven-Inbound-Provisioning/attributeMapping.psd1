@@ -20,12 +20,15 @@
 
     "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User" = @{
         department      = 'DEPARTMENT'
-        #manager        = @{
-        #    value = 'ManagerID'
-        #}
+        manager        = @{
+            # The below value gets modified in the script to become the managers employeeID
+            value = 'Reports To Legal First Name'
+        }
     }
-    
+
     "urn:ietf:params:scim:schemas:extension:identityman:1.0:User" = @{
-        HireDate = 'Hire Date'
+        HireDate     = 'Hire Date'
     }
 }
+
+# Manager Reports To Legal First Name,Reports To Legal Last Name
