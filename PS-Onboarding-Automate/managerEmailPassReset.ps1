@@ -11,7 +11,7 @@ if (!(Get-Module -ListAvailable -Name Microsoft.Graph)) {
 }
 
 
-function Generate-Password {
+function New-Password {
     param(
         [int]$Length = 8,
         [int]$Count = 1
@@ -36,18 +36,78 @@ function Generate-Password {
         Write-Output $newpass
     }
 }
-Generate-Password 
+New-Password 
 #-Length 8 -Count 5
 
+### Logs ###
+# Log file path
+$LogFilePath = ".\PasswordResetLog.txt"
+# Log the date and time of the run
+$TimeStamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated for users starting in 3 days:"
 
 
-# Grabs all users in directory
+# Grabs all users in directory and fins which start in X days (if any)
+
 # Connect To Graph
 Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Directory.AccessAsUser.All"
-[array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype
-$CheckDate = (Get-Date).adddays(-60)
-$Employees | Where-Object {$CheckDate -as [datetime] -lt $_.EmployeeHireDate} | Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, employeeHireDate -AutoSize
 
+# Retrieve users and check for upcoming start date
+[array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype
+$CheckDate = (Get-Date).AddDays(3)
+$MatchingUsers = $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} #| Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, Id, employeeHireDate -AutoSize
+
+<# Diagnostic: Output matched users based on hire date
+Write-Output "Matched Users for password reset:"
+$MatchingUsers | ForEach-Object {
+    Write-Output "Id: $($_.Id)"
+    Write-Output "DisplayName: $($_.DisplayName)"
+    Write-Output "UserPrincipalName: $($_.UserPrincipalName)"
+    Write-Output "EmployeeHireDate: $($_.EmployeeHireDate)"
+    Write-Output "---------------------------"
+}
+#>
+
+# Diagnostic: Output matched users based on hire date
+Add-Content -Path $LogFilePath -Value "Matched Users for password reset:"
+$MatchingUsers | ForEach-Object {
+    Add-Content -Path $LogFilePath -Value "Id: $($_.Id)"
+    Add-Content -Path $LogFilePath -Value "DisplayName: $($_.DisplayName)"
+    Add-Content -Path $LogFilePath -Value "UserPrincipalName: $($_.UserPrincipalName)"
+    Add-Content -Path $LogFilePath -Value "EmployeeHireDate: $($_.EmployeeHireDate)"
+    Add-Content -Path $LogFilePath -Value "---------------------------"
+}
+
+# Process matching users with error handling
+if ($MatchingUsers.Count -gt 0) {
+    foreach ($User in $MatchingUsers) {
+        if ($User.Id -and $User.DisplayName) {
+            try {
+                # Generate a new password
+                $NewPassword = New-Password -Length 8 -Count 1
+
+                # Reset the user's password
+                Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate
+                <#Update-MgUser -UserId $User.Id -PasswordProfile @{
+                    Password = $NewPassword
+                    ForceChangePasswordNextSignIn = $true
+                }
+                #>    
+
+                # Log the password reset action
+                Add-Content -Path $LogFilePath -Value "Password reset for user: $($User.DisplayName)"
+            } catch {
+                # Log any errors during password reset
+                Add-Content -Path $LogFilePath -Value "Failed to reset password for user: $($User.DisplayName) - Error: $_"
+            }
+        } else {
+            # Log if user does not have required properties
+            Add-Content -Path $LogFilePath -Value "Skipped user due to missing Id or DisplayName properties."
+        }
+    }
+} else {
+    Add-Content -Path $LogFilePath -Value "No users with a hire date in 3 days."
+}
 
 ######################################################################
 

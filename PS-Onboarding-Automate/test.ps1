@@ -13,7 +13,7 @@ $UsersCreatedDate | Where-Object {($_.EmployeeHireDate -gt $Date)}
 $Date
 
 #####This would be great if they allowed filters for server side filtering 
-Get-MgUser -Filter "EmployeeHireDate ge $([datetime]::UtcNow.AddYears(-1).ToString("s"))Z" | ft -AutoSize Id, UserPrincipalName, CreatedDateTime, EmployeeHireDate
+Get-MgUser -Filter "EmployeeHireDate ge $([datetime]::UtcNow.AddYears(-1).ToString("s"))Z" | Format-Table -AutoSize Id, UserPrincipalName, CreatedDateTime, EmployeeHireDate
 
 ######
 
@@ -81,3 +81,27 @@ $Employees | Where-Object {$_.EmployeeHireDate -as [datetime] -lt $CheckDate -an
 $CheckDate = (Get-Date).AddDays(3)
 $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} | Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, employeeHireDate -AutoSize
 
+#######################
+# Send Email Test
+Import-Module Microsoft.Graph.Users.Actions
+
+$params = @{
+	message = @{
+		subject = "Meet for lunch?"
+		body = @{
+			contentType = "Text"
+			content = "The new cafeteria is open."
+		}
+		toRecipients = @(
+			@{
+				emailAddress = @{
+					address = "username@domain.com"
+				}
+			}
+		)
+	}
+	saveToSentItems = "false"
+}
+
+# A UPN can also be used as -UserId.
+Send-MgUserMail -UserId $userId -BodyParameter $params
