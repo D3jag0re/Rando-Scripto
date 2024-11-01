@@ -36,7 +36,7 @@ function New-Password {
         Write-Output $newpass
     }
 }
-New-Password 
+#New-Password 
 #-Length 8 -Count 5
 
 ### Logs ###
@@ -50,7 +50,7 @@ Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated f
 # Grabs all users in directory and fins which start in X days (if any)
 
 # Connect To Graph
-Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Directory.AccessAsUser.All"
+Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Directory.AccessAsUser.All", "Mail.Send"
 
 # Retrieve users and check for upcoming start date
 [array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype
@@ -87,15 +87,14 @@ if ($MatchingUsers.Count -gt 0) {
                 $NewPassword = New-Password -Length 8 -Count 1
 
                 # Reset the user's password
-                Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate
-                <#Update-MgUser -UserId $User.Id -PasswordProfile @{
+                Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate, manager
+                Update-MgUser -UserId $User.Id -PasswordProfile @{
                     Password = $NewPassword
-                    ForceChangePasswordNextSignIn = $true
+                    ForceChangePasswordNextSignIn = $false #Currently when set to true it resets but then does not accept "old" password when resetting. 
                 }
-                #>    
 
                 # Log the password reset action
-                Add-Content -Path $LogFilePath -Value "Password reset for user: $($User.DisplayName)"
+                Add-Content -Path $LogFilePath -Value "Password reset for user: $($User.DisplayName) $($NewPassword)"
             } catch {
                 # Log any errors during password reset
                 Add-Content -Path $LogFilePath -Value "Failed to reset password for user: $($User.DisplayName) - Error: $_"
@@ -112,3 +111,4 @@ if ($MatchingUsers.Count -gt 0) {
 ######################################################################
 
 # Will need "UserAuthenticationMethod.ReadWrite.All" if using temporaryAccessPass
+# Get-MgUserManager -UserID $user.Id  
