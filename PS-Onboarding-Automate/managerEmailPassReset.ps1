@@ -132,7 +132,7 @@ Pass: $($NewPassword)"
                             }
                         )#>
                 }
-                saveToSentItems = "false"
+                saveToSentItems = "true"
                 }
                 # Send Mail 
                 Send-MgUserMail -UserId "$($manager.Id)" -BodyParameter $params
