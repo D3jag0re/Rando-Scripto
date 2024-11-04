@@ -1,4 +1,5 @@
 # This script will reset the password of the user, then send an email to their manager with their temporary password as well as start date details for the user. 
+# This will trigger 3 days before Users start date 
 
 ############################################################################
 # Check if Microsoft Graph PowerShell module is installed, and if not, install it. 
@@ -42,6 +43,7 @@ function New-Password {
 ### Logs ###
 # Log file path
 $LogFilePath = ".\PasswordResetLog.txt"
+
 # Log the date and time of the run
 $TimeStamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated for users starting in 3 days:"
@@ -53,7 +55,7 @@ Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated f
 Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Directory.AccessAsUser.All", "Mail.Send"
 
 # Retrieve users and check for upcoming start date
-[array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype
+[array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype, mail
 $CheckDate = (Get-Date).AddDays(3)
 $MatchingUsers = $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} #| Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, Id, employeeHireDate -AutoSize
 
@@ -87,14 +89,59 @@ if ($MatchingUsers.Count -gt 0) {
                 $NewPassword = New-Password -Length 8 -Count 1
 
                 # Reset the user's password
-                Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate, manager
+                Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate, manager, mail
                 Update-MgUser -UserId $User.Id -PasswordProfile @{
                     Password = $NewPassword
                     ForceChangePasswordNextSignIn = $false #Currently when set to true it resets but then does not accept "old" password when resetting. 
                 }
+#################
+                # Send Manager Email
+                
+                # Grab ID of Manager 
+                $managerId = Get-MgUserManager -UserID $User.Id 
 
+                # Grab additional properties of manager (Get-MgUserManager stores additional properties as a dict)
+                $manager = Get-MgUser -UserId $managerId.Id -Property DisplayName, mail, Id
+
+                # Email Parmeters 
+                $params = @{
+                    message = @{
+                        subject = "New Employee: $($User.DisplayName)"
+                        body = @{
+                            contentType = "Text"
+                            content = "Hi $($manager.DisplayName),
+
+This is a reminder you have a new employee starting on $($User.employeeHireDate):
+
+Name: $($User.DisplayName)
+Email: $($User.mail)
+Pass: $($NewPassword)"
+                        }
+                        toRecipients = @(
+                            @{
+                                emailAddress = @{
+                                    address = "$($manager.Mail)"
+                                    }
+                            }
+                        )
+                        <#ccRecipients = @(
+                            @{
+                                emailAddress = @{
+                                    address = ""
+                                }
+                            }
+                        )#>
+                }
+                saveToSentItems = "false"
+                }
+                # Send Mail 
+                Send-MgUserMail -UserId "$($manager.Id)" -BodyParameter $params
+                
+#################               
                 # Log the password reset action
                 Add-Content -Path $LogFilePath -Value "Password reset for user: $($User.DisplayName) $($NewPassword)"
+                # Log Email
+                Add-Content -Path $LogFilePath -Value "Password details send to $($manager.mail) "
             } catch {
                 # Log any errors during password reset
                 Add-Content -Path $LogFilePath -Value "Failed to reset password for user: $($User.DisplayName) - Error: $_"
@@ -111,4 +158,6 @@ if ($MatchingUsers.Count -gt 0) {
 ######################################################################
 
 # Will need "UserAuthenticationMethod.ReadWrite.All" if using temporaryAccessPass
-# Get-MgUserManager -UserID $user.Id  
+# Get-MgUserManager -UserID $user.Id    - This returns the managerID
+# Get-MgUser -UserId 1d9e6d49-87cb-4df3-825c-bdfa3690653f -Property Id,manager | format-list -Property *     To see all user properties 
+# Setup service account for mailing, might be easier than using a service principal
