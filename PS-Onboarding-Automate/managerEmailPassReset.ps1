@@ -1,5 +1,5 @@
 # This script will reset the password of the user, then send an email to their manager with their temporary password as well as start date details for the user. 
-# This will trigger 3 days before Users start date 
+# This will trigger 2 days before Users start date 
 
 ############################################################################
 # Check if Microsoft Graph PowerShell module is installed, and if not, install it. 
@@ -46,7 +46,7 @@ $LogFilePath = ".\PasswordResetLog.txt"
 
 # Log the date and time of the run
 $TimeStamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated for users starting in 3 days:"
+Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated for users starting in 2 days:"
 
 
 # Grabs all users in directory and fins which start in X days (if any)
@@ -56,7 +56,7 @@ Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.Read.All", "UserAuthent
 
 # Retrieve users and check for upcoming start date
 [array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype, mail
-$CheckDate = (Get-Date).AddDays(3)
+$CheckDate = (Get-Date).AddDays(2)
 $MatchingUsers = $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} #| Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, Id, employeeHireDate -AutoSize
 
 <# Diagnostic: Output matched users based on hire date
@@ -152,7 +152,7 @@ Pass: $($NewPassword)"
         }
     }
 } else {
-    Add-Content -Path $LogFilePath -Value "No users with a hire date in 3 days."
+    Add-Content -Path $LogFilePath -Value "No users with a hire date in 2 days."
 }
 
 ######################################################################
