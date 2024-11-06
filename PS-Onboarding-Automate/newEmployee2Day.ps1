@@ -1,17 +1,48 @@
 # This script will reset the password of the user, then send an email to their manager with their temporary password as well as start date details for the user. 
 # This will trigger 2 days before Users start date 
-# This script is designed to be run locally with user-prompted graph sign in and local logging
+# This script is designed to be run on an Azure Automation Runbook using system managed identity
 
-############################################################################
-# Check if Microsoft Graph PowerShell module is installed, and if not, install it. 
-# Requires Microsoft Graph PowerShell SDK
-if (!(Get-Module -ListAvailable -Name Microsoft.Graph)) {
-    Write-Output "Microsoft Graph PowerShell module is not installed. Installing now..."
-    Install-Module -Name Microsoft.Graph -Scope CurrentUser -AllowClobber -Force
-} else {
-    Write-Output "Microsoft Graph PowerShell module is already installed."
-}
+# Required Graph Permissions: "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Mail.Send"
+# "Directory.AccessAsUser.All" is not assignable to application but req for password Reset
+# Assigned "User Administrator" role to the app instead
 
+######################
+## Import & Connect ##
+######################
+
+# Import the modules
+Import-module 'az.accounts'
+Import-module 'Microsoft.Graph.Users'
+Import-module 'Microsoft.Graph.Authentication'
+Import-Module 'Microsoft.Graph.Users.Actions'
+
+# Connect to Azure with the System Managed Identity
+Connect-AzAccount -Identity
+
+# Connect to Graph with the System Managed Identity
+Connect-MgGraph -Identity 
+
+####################
+## Storage Acount ##
+####################
+
+$logTime = Get-Date -Format "yyyy-MM-dd"
+$resourceGroup = "<your_resource_group>" # Reource group that hosts the storage account
+$storageAccountName = "<your_storage_account>" # Storage account name
+$containerName = "<your_container>" # Container name
+$tempFolder = "$env:Temp" # Temp location to save the exported data
+$logFileName = "$logTime newEmployeeLog.txt" # Name of the exported data file
+$LogFilePath = "$env:Temp\$logTime newEmployeeLog.txt"
+
+###############
+## Log Setup ##
+###############
+$TimeStamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated for users starting in 2 days:"
+
+########################
+## Password Generator ##
+########################
 
 function New-Password {
     param(
@@ -38,40 +69,15 @@ function New-Password {
         Write-Output $newpass
     }
 }
-#New-Password 
-#-Length 8 -Count 5
-
-### Logs ###
-# Log file path
-$LogFilePath = ".\PasswordResetLog.txt"
-
-# Log the date and time of the run
-$TimeStamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated for users starting in 2 days:"
 
 
-# Grabs all users in directory and fins which start in X days (if any)
-
-# Connect To Graph
-Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Directory.AccessAsUser.All", "Mail.Send"
 
 # Retrieve users and check for upcoming start date
 [array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype, mail
 $CheckDate = (Get-Date).AddDays(2)
 $MatchingUsers = $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} #| Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, Id, employeeHireDate -AutoSize
 
-<# Diagnostic: Output matched users based on hire date
-Write-Output "Matched Users for password reset:"
-$MatchingUsers | ForEach-Object {
-    Write-Output "Id: $($_.Id)"
-    Write-Output "DisplayName: $($_.DisplayName)"
-    Write-Output "UserPrincipalName: $($_.UserPrincipalName)"
-    Write-Output "EmployeeHireDate: $($_.EmployeeHireDate)"
-    Write-Output "---------------------------"
-}
-#>
-
-# Diagnostic: Output matched users based on hire date
+# Log: Output matched users based on hire date
 Add-Content -Path $LogFilePath -Value "Matched Users for password reset:"
 $MatchingUsers | ForEach-Object {
     Add-Content -Path $LogFilePath -Value "Id: $($_.Id)"
@@ -140,7 +146,8 @@ Pass: $($NewPassword)"
                 
 #################               
                 # Log the password reset action
-                Add-Content -Path $LogFilePath -Value "Password reset for user: $($User.DisplayName) $($NewPassword)"
+                Add-Content -Path $LogFilePath -Value "Password reset for user: $($User.DisplayName)"
+                Write-Output "Password reset for user: $($User.DisplayName)"
                 # Log Email
                 Add-Content -Path $LogFilePath -Value "Password details send to $($manager.mail) "
             } catch {
@@ -154,11 +161,24 @@ Pass: $($NewPassword)"
     }
 } else {
     Add-Content -Path $LogFilePath -Value "No users with a hire date in 2 days."
+    Write-Output "No users with a hire date in 2 days."
 }
 
-######################################################################
+##############################
+## Send Log To Storage Blob ##
+##############################
 
-# Will need "UserAuthenticationMethod.ReadWrite.All" if using temporaryAccessPass
-# Get-MgUserManager -UserID $user.Id    - This returns the managerID
-# Get-MgUser -UserId 1d9e6d49-87cb-4df3-825c-bdfa3690653f -Property Id,manager | format-list -Property *     To see all user properties 
-# Setup service account for mailing, might be easier than using a service principal
+# Create the storage context directly with the managed identity
+$storageContext = New-AzStorageContext -StorageAccountName $storageAccountName 
+$blobs = Get-AzStorageBlob -Container $containerName -Context $storageContext
+$blobs | ForEach-Object { $_.Name }
+
+# Upload the file to the specified blob storage container
+Set-AzStorageBlobContent -File $LogFilePath -Container $containerName -Blob $logFileName -Context $storageContext -Force
+
+
+#########
+## end ##
+#########
+
+# Get-AzStorageBlob -Container $containerName -Blob blob* -Context $storageContext
