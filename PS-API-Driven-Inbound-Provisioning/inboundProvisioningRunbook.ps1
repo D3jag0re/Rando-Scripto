@@ -5,7 +5,11 @@
 ################
 $path = pwd
 $tempFolder = "$env:Temp" # Temp location to write new files to ?
-
+$logTime = Get-Date -Format "yyyy-MM-dd"
+$resourceGroup = "<your_resource_group>" # Reource group that hosts the storage account
+$storageAccountName = "<your_storage_account>" # Storage account name
+$csvContainerName = "<your_container>" # Container name where csv file is stored
+$scriptContainerName = "<your_container_name>" # Container name where scripts are stored 
 
 
 ####################
