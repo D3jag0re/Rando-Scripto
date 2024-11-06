@@ -2,6 +2,8 @@
 
 These files are for testing this feature in a hybrid AD environment. See here for details : https://github.com/AzureAD/entra-id-inbound-provisioning/tree/main/PowerShell
 
+## Manual
+
 $AttributeMapping = Import-PowerShellDataFile '.\attributeMapping.psd1'
 .\CSV2SCIM.ps1 -Path $Path -AttributeMapping $AttributeMapping -ValidateAttributeMap
 .\CSV2SCIM.ps1 -Path $Path -AttributeMapping $AttributeMapping > BulkRequestPayload.json
@@ -14,3 +16,9 @@ Manually upload (for testing)
 - Set request headers Key:Value > Content-Type:application/scim+json
 - Paste payload.json into the request body
 - Run query
+
+## Automate 
+
+Use inboundProvisioningRunbook.ps1 as the runbook. 
+
+v1 Uses blob storage for all files, whereas v2 will feature a git integration for everything other than the csv
