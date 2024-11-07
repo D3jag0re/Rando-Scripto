@@ -17,11 +17,11 @@ Manually upload (for testing)
 - Paste payload.json into the request body
 - Run query
 
-## Automate 
+## Azure Automate 
 
 Use inboundProvisioningRunbook.ps1 as the runbook. 
 
-v1 Uses blob storage for all files, whereas v2 will feature a git integration for everything other than the csv
-
 When running from an Azure Automate account using a system assigned managed identity, you will need to assign graph permissions:
  - SynchronizationData-User.Upload (For sending the bulkupload)
+
+ v1 Uses blob storage for all files, whereas v2 will feature a git integration for everything other than the csv
