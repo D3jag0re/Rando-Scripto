@@ -27,10 +27,8 @@ Connect-MgGraph -Identity
 ####################
 
 $logTime = Get-Date -Format "yyyy-MM-dd"
-$resourceGroup = "<your_resource_group>" # Reource group that hosts the storage account
 $storageAccountName = "<your_storage_account>" # Storage account name
 $containerName = "<your_container>" # Container name
-$tempFolder = "$env:Temp" # Temp location to save the exported data
 $logFileName = "$logTime newEmployeeLog.txt" # Name of the exported data file
 $LogFilePath = "$env:Temp\$logTime newEmployeeLog.txt"
 
