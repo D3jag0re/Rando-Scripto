@@ -7,7 +7,7 @@ This works in conjunction with[PS-Onboarding-Automate](../PS-Onboarding-Automate
 - Nighty run of API-Driven...Runbook via Azure Automate to provision users on prem (which then sync to Entra)
 - Daily run of "PS-Onboarding" Runbook to reset new users password two days before start date and notify managers
 
-![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](./images/Employee%20Onboarding%20Desired%20Workflow%20ANON.jpg)
+![Provisioning Diagram](./images/Employee%20Onboarding%20Desired%20Workflow%20ANON.jpg)
 
 ## Manual
 
