@@ -99,9 +99,11 @@ if ($MatchingUsers.Count -gt 0) {
                     Password = $NewPassword
                     ForceChangePasswordNextSignIn = $false #Currently when set to true it resets but then does not accept "old" password when resetting. 
                 }
-#################
-                # Send Manager Email
                 
+                ########################
+                ## Send Manager Email ##
+                ########################
+
                 # Grab ID of Manager 
                 $managerId = Get-MgUserManager -UserID $User.Id 
 
