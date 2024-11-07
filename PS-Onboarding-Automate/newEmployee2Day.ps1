@@ -180,5 +180,3 @@ Set-AzStorageBlobContent -File $LogFilePath -Container $containerName -Blob $log
 #########
 ## end ##
 #########
-
-# Get-AzStorageBlob -Container $containerName -Blob blob* -Context $storageContext
