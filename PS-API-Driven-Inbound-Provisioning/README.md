@@ -4,8 +4,8 @@ These files are for testing this feature in a hybrid AD environment. See here fo
 
 ## Manual
 
-$AttributeMapping = Import-PowerShellDataFile '.\attributeMapping.psd1'
-.\CSV2SCIM.ps1 -Path $Path -AttributeMapping $AttributeMapping -ValidateAttributeMap
+$AttributeMapping = Import-PowerShellDataFile '.\attributeMapping.psd1' \
+.\CSV2SCIM.ps1 -Path $Path -AttributeMapping $AttributeMapping -ValidateAttributeMap \
 .\CSV2SCIM.ps1 -Path $Path -AttributeMapping $AttributeMapping > BulkRequestPayload.json
 
 Manually upload (for testing)
