@@ -11,7 +11,6 @@ Stretch goals will be included. The script will output:
 - Top 5 Processes by Memory Usage 
 - OS Version
 - Uptime 
-- Load Average
 - Logged in Users
 - Failed Login Attempts 
 
