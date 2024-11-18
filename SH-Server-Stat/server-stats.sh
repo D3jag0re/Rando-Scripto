@@ -30,21 +30,3 @@ echo -e "Currently Logged in Users are: $(users)\n"
 
 ## Failed Login Attempts ## 
 echo -e "Failed Login Attempts: $(grep "Failed password" /var/log/auth.log | head -3)\n"
-
-
-
-
-
-
-
-
-
-
-
-#top -o %MEM
-#top -o %CPU
-#top -n 1 -b > top-output.txt #saves it to file
-#head -n 12 top-output.txt | tail -6 #Pulls top 5 with header
-
-# free for disk space 
-# 
