@@ -1,0 +1,70 @@
+{
+    "properties": {
+      "displayName": "Require tags on all resources (excluding resource groups)",
+      "policyType": "Custom",
+      "mode": "All",
+      "description": "Enforces existence of 3 default tags on all resources except resource groups.",
+      "metadata": {
+        "version": "1.0.0",
+        "category": "Tags"
+      },
+      "parameters": {
+        "tag1": {
+          "type": "String",
+          "defaultValue": "createdBy",
+          "metadata": {
+            "displayName": "Tag 1 Name",
+            "description": "First required tag name, such as 'createdBy'."
+          }
+        },
+        "tag2": {
+          "type": "String",
+          "defaultValue": "createdOn",
+          "metadata": {
+            "displayName": "Tag 2 Name",
+            "description": "Second required tag name, such as 'createdOn'."
+          }
+        },
+        "tag3": {
+          "type": "String",
+          "defaultValue": "application",
+          "metadata": {
+            "displayName": "Tag 3 Name",
+            "description": "Third required tag name, such as 'application'."
+          }
+        }
+      },
+      "policyRule": {
+        "if": {
+          "allOf": [
+            {
+              "not": {
+                "field": "type",
+                "equals": "Microsoft.Resources/subscriptions/resourceGroups"
+              }
+            },
+            {
+              "anyOf": [
+                {
+                  "field": "[concat('tags[', parameters('tag1'), ']')]",
+                  "exists": "false"
+                },
+                {
+                  "field": "[concat('tags[', parameters('tag2'), ']')]",
+                  "exists": "false"
+                },
+                {
+                  "field": "[concat('tags[', parameters('tag3'), ']')]",
+                  "exists": "false"
+                }
+              ]
+            }
+          ]
+        },
+        "then": {
+          "effect": "deny"
+        }
+      }
+    }
+  }
+  
