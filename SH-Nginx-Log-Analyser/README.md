@@ -52,3 +52,25 @@ Here is an example of what the output should look like:
  
 
 There are multiple ways to solve this challenge. Do some research on awk, sort, uniq, head, grep, and sed commands. Stretch goal is to come up with multiple solutions for the above problem. For example, instead of using awk, you can use grep and sed to filter and count the requests.
+
+## Notes 
+
+Example Breakdown of the Log:
+
+    IP Address:
+    178.128.94.113
+
+    Timestamp:
+    [04/Oct/2024:00:00:18 +0000]
+
+    HTTP Request:
+    "GET /v1-health HTTP/1.1"
+
+    Response Code and Size:
+    200 51
+
+    Referer (if any):
+    "-" (empty in this case)
+
+    User-Agent:
+    "DigitalOcean Uptime Probe 0.22.0 (https://digitalocean.com)"
