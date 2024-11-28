@@ -9,11 +9,11 @@ filepath_a = './fileA.csv' # Adjust the path to your actual file
 filepath_b = './FileB.csv' # Adjust the path to your actual file
 
 
+# Read CSV
 
-df_a = df_a = pd.read_csv(filepath_a)
+df_a = pd.read_csv(filepath_a)
 
-df_b = df_b = pd.read_csv(filepath_b)
-
+df_b = pd.read_csv(filepath_b)
 
 
 # Performing the comparison
@@ -23,7 +23,6 @@ common_values = set(df_a['DNSHostName']).intersection(df_b['Display Name'])
 only_in_a = set(df_a['DNSHostName']).difference(df_b['Display Name'])
 
 only_in_b = set(df_b['Display Name']).difference(df_a['DNSHostName'])
-
 
 
 # Creating DataFrames for better visualization
