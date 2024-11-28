@@ -4,7 +4,7 @@ print("Script started...")
 
 # Replace these with actual file paths or data loading from your CSVs
 
-filepath_a = './fileA.csv' # Adjust the path to your actual file
+filepath_a = './FileA.csv' # Adjust the path to your actual file
 
 filepath_b = './FileB.csv' # Adjust the path to your actual file
 
