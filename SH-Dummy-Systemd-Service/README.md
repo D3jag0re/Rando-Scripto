@@ -63,4 +63,4 @@ Troubleshooting:
 ### Improvements 
 
 - Change script to write to syslog. This should avoid any permission issues as well as make log management easier.
-- can check logs with 'sudo journalctl -t dummy-service' 
+- can check logs with `sudo journalctl -t dummy-service`
