@@ -34,8 +34,4 @@ foreach ($user in $users) {
         Write-Host $message
         Add-Content -Path $logFilePath -Value $message
     }
-
 }
-
-
-
