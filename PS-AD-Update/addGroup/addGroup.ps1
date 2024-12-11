@@ -10,7 +10,7 @@ $csvFilePath = "C:\path\to\your\file.csv"
 $logFilePath = "C:\path\to\addGrouplog.txt"
 
 # Log the script start time with a timestamp
-$startTime = "Script started at: $(Get-Date)"
+$startTime = "Script started at: $(Get-date)"
 Add-Content -Path $logFilePath -Value $startTime
 
 # Import the CSV File 
