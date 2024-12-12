@@ -1,4 +1,9 @@
 # Installs the watchguard ssl vpn on client machine silently 
+#################################################
+############# Just use winget.... ###############
+#################################################
+
+# Keeping the below for reference only
 
 # Download Client (12.11)
 #curl https://cdn.watchguard.com/SoftwareCenter/Files/MUVPN_SSL/12_11/WG-MVPN-SSL_12_11.exe -o watchguardinstall.exe
@@ -28,7 +33,7 @@ try {
 # Step 2: Install the software silently
 Write-Host "Starting the silent installation of WatchGuard SSL VPN..."
 try {
-    Start-Process -FilePath $installerPath -ArgumentList "/silent", "/verysilent", "/tasks=desktopicon" -Wait -ErrorAction Stop
+    Start-Process -FilePath $installerPath -ArgumentList "/silent", "/verysilent", "/norestart", "/tasks=desktopicon" -Wait -ErrorAction Stop
     Write-Host "Installation completed successfully."
 } catch {
     Write-Host "Error: Installation failed. $_"
