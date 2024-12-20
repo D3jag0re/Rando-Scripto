@@ -1,4 +1,4 @@
-# Identity needs 'Microsoft.Scorage/storageAccounts/write'
+# Identity needs 'Microsoft.Storage/storageAccounts/write'
 $resourceGroupName = "<resource-group>"
 $storageAccountName = "<storage-account>"
 
