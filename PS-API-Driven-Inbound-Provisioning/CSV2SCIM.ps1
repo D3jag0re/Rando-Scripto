@@ -1,6 +1,8 @@
 # Copied and modified from https://github.com/AzureAD/entra-id-inbound-provisioning/blob/main/PowerShell/CSV2SCIM/src/CSV2SCIM.ps1
 # Modifications - Date format for Entra, search "Hire Date" to find.
 # Modifications - Lookup manager in csv and populate filenumber/ employeeID for the value. Search for "manager set" to find
+# Modifications - Added Graph Connect at function Invoke-AzureADBulkScimRequest 
+
 <#
 .SYNOPSIS
     Generate and send user data to Microsoft Entra ID Provisioning /bulkUpload API endpoint.
@@ -262,8 +264,8 @@ function ConvertTo-ScimBulkPayload {
             # Check and format "Hire Date" if it exists
             if ($obj."Hire Date") {
                 # Split the date string by '/' and rearrange to yyyyMMdd080000.0Z format
-                $dateParts = $obj."Hire Date" -split '/'
-                $obj."Hire Date" = $dateParts[2] + $dateParts[1] + $dateParts[0] + "080000.0Z"
+                $dateParts = $obj."Hire Date" -split '-'
+                $obj."Hire Date" = $dateParts[0] + $dateParts[1] + $dateParts[2] + "080000.0Z"
             }
 
             # Manager Set - Looks up and matches manager values to grab manager's File Number
@@ -477,6 +479,8 @@ function Invoke-AzureADBulkScimRequest {
     )
 
     begin {
+        # Connect to Graph with the System Managed Identity
+        Connect-MgGraph -Identity 
         ## Import Mg Modules
         Import-Module Microsoft.Graph.Applications -ErrorAction Stop
 

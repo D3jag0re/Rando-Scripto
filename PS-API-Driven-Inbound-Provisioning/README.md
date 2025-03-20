@@ -9,6 +9,8 @@ This works in conjunction with [PS-Onboarding-Automate](../PS-Onboarding-Automat
 
 ![Provisioning Diagram](./images/Employee%20Onboarding%20Desired%20Workflow%20ANON.jpg)
 
+- Make sure to add in the ServicePrincipalID to inboundprovisioningrunbook.ps1 . This is the ID from the provisioning app in your tenant. 
+
 ## Manual
 
 $AttributeMapping = Import-PowerShellDataFile '.\attributeMapping.psd1' \

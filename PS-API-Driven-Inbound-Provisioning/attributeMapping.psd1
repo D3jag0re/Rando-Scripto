@@ -19,7 +19,7 @@
     )
 
     "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User" = @{
-        department      = 'DEPARTMENT'
+        department      = 'Department Description'
         manager        = @{
             # The below value gets modified in the script to become the managers employeeID
             value = 'Reports To Legal First Name'
