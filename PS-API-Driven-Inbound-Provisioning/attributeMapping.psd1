@@ -2,6 +2,7 @@
 # Lots of attributes are created and mapped in the portal using values from here as well (for ex, distinguished name, mail, etc.) or null defaults (company name etc.)
 @{
     externalId   = 'File Number'
+    userName     = 'Work Contact: Work Email' # This maps to userPrincipalName
     name         = @{
         familyName = 'Legal Last Name'
         givenName  = 'Legal First Name'
