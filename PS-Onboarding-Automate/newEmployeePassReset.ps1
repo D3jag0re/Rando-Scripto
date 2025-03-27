@@ -45,7 +45,12 @@ Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated f
 # Retrieve users and check for upcoming start date
 [array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype, mail
 $CheckDate = Get-Date
-$MatchingUsers = $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} #| Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, Id, employeeHireDate -AutoSize
+#$MatchingUsers = $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} #| Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, Id, employeeHireDate -AutoSize
+$MatchingUsers = $Employees | Where-Object {
+    ($_."EmployeeHireDate") -and
+    ([datetime]::Parse($_.EmployeeHireDate).Date -eq $CheckDate.Date)
+}
+
 
 # Log: Output matched users based on hire date
 Add-Content -Path $LogFilePath -Value "Matched Users for password reset:"
@@ -63,13 +68,13 @@ if ($MatchingUsers.Count -gt 0) {
         if ($User.Id -and $User.DisplayName) {
             try {
                 # Generate a new password
-                $NewPassword = Welcome1
+                $NewPassword = "Welcome1"
 
                 # Reset the user's password
-                Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate, manager, mail
+                Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate, manager, mail, jobTitle
                 Update-MgUser -UserId $User.Id -PasswordProfile @{
                     Password = $NewPassword
-                    ForceChangePasswordNextSignIn = $false #Currently when set to true it resets but then does not accept "old" password when resetting. 
+                    #ForceChangePasswordNextSignIn = $false #Currently when set to true it resets but then does not accept "old" password when resetting. 
                 }
                 
                 ########################
@@ -80,7 +85,7 @@ if ($MatchingUsers.Count -gt 0) {
                 $managerId = Get-MgUserManager -UserID $User.Id 
 
                 # Grab additional properties of manager (Get-MgUserManager stores additional properties as a dict)
-                $manager = Get-MgUser -UserId $managerId.Id -Property DisplayName, mail, Id
+                $manager = Get-MgUser -UserId $managerId.Id -Property DisplayName, mail, Id, jobTitle
 
                 # Email Parmeters 
                 $params = @{
@@ -88,13 +93,18 @@ if ($MatchingUsers.Count -gt 0) {
                         subject = "New Employee: $($User.DisplayName)"
                         body = @{
                             contentType = "Text"
-                            content = "Hi $($manager.DisplayName),
+                            content = @"
+Hi $($manager.DisplayName),
 
-This is a reminder you have a new employee starting on $($User.employeeHireDate):
+This is a reminder you have a new employee starting today ($($User.employeeHireDate)):
 
 Name: $($User.DisplayName)
+Job Title: $($User.jobTitle)
 Email: $($User.mail)
-Pass: $($NewPassword)"
+
+
+Please ensure onboarding tasks are completed.
+"@
                         }
                         toRecipients = @(
                             @{

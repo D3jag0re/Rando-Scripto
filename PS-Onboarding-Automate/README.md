@@ -19,3 +19,7 @@ Logs are to be written locally
 Same as managerEmailPassReset.ps1 but modified to run in an Azure Automation account using a system assigned managed idenity.
 
 Logs are to be written to blob storage
+
+## Fun Facts 
+
+There is a fun known issue in hybrid environments with resetting password via graph. When setting ForceChangePasswordNextSignIn = $true - it resets but then does not accept "current" password when resetting, it only accepts the password before reset (works if you do it manually in the Entra portal though...fun!).  Therefore in this case we setup an onPrem script to do the same. 
