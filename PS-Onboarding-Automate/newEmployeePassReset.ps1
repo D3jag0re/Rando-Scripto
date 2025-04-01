@@ -51,7 +51,6 @@ $MatchingUsers = $Employees | Where-Object {
     ([datetime]::Parse($_.EmployeeHireDate).Date -eq $CheckDate.Date)
 }
 
-
 # Log: Output matched users based on hire date
 Add-Content -Path $LogFilePath -Value "Matched Users for password reset:"
 $MatchingUsers | ForEach-Object {

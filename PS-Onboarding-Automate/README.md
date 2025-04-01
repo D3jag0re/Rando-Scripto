@@ -23,3 +23,13 @@ Logs are to be written to blob storage
 ## Fun Facts 
 
 There is a fun known issue in hybrid environments with resetting password via graph. When setting ForceChangePasswordNextSignIn = $true - it resets but then does not accept "current" password when resetting, it only accepts the password before reset (works if you do it manually in the Entra portal though...fun!).  Therefore in this case we setup an onPrem script to do the same. 
+
+Used [this resource](https://thesysadminchannel.com/graph-api-using-a-managed-identity-in-an-automation-runbook/) for assigning Graph permissions to managed identity
+
+```
+#New Service Principal Permissions using Graph API
+$ServicePrincipalId = '900d23ex-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+$GraphResource = Get-MgServicePrincipal -Filter "AppId eq '00000003-0000-0000-c000-000000000000'"
+$Permission = $GraphResource.AppRoles | Where-Object {$_.value -eq 'User.Read.All'}
+New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $ServicePrincipalId -PrincipalId $ServicePrincipalId -AppRoleId $Permission.Id -ResourceId $GraphResource.Id
+```
