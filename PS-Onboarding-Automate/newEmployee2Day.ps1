@@ -13,8 +13,8 @@
 
 # Import the modules
 Import-module 'az.accounts'
-Import-module 'Microsoft.Graph.Users'
 Import-module 'Microsoft.Graph.Authentication'
+Import-module 'Microsoft.Graph.Users'
 Import-Module 'Microsoft.Graph.Users.Actions'
 Import-Module 'Microsoft.Graph.Groups'
 
