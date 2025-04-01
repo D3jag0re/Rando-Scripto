@@ -1,8 +1,9 @@
-# This script will reset the password of the user, then send an email to their manager with their temporary password as well as start date details for the user. 
+# This script will see which users are starting in 2 days, and add them to a license group
 # This will trigger 2 days before Users start date 
+# Email manager with name, job title, email, and alert them email is active.
 # This script is designed to be run on an Azure Automation Runbook using system managed identity
 
-# Required Graph Permissions: "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Mail.Send"
+# Required Graph Permissions: "User.ReadWrite.All", "Directory.Read.All", "UserAuthenticationMethod.ReadWrite.All", "Mail.Send", "GroupMember.ReadWrite.All"
 # "Directory.AccessAsUser.All" is not assignable to application but req for password Reset
 # Assigned "User Administrator" role to the app instead
 
@@ -35,40 +36,11 @@ $LogFilePath = "$env:Temp\$logTime newEmployeeLog.txt"
 ###############
 ## Log Setup ##
 ###############
+
 $TimeStamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 Add-Content -Path $LogFilePath -Value "`n$TimeStamp - Password reset initiated for users starting in 2 days:"
 
-########################
-## Password Generator ##
-########################
-
-function New-Password {
-    param(
-        [int]$Length = 8,
-        [int]$Count = 1
-    )
-    
-    $UpperCaseChars = [char[]]([char]'A'..[char]'Z')
-    $LowerCaseChars = [char[]]([char]'a'..[char]'z')
-    $NumberChars = [char[]]([char]'1'..[char]'9')
-    $SpecialChars = [char[]]('!', '@', '#', '$', '%')
-    
-    for ($i = 1; $i -le $Count; $i++) {
-        $PasswordChars = @()
-        for ($j = 1; $j -le $Length; $j++) {
-            switch (Get-Random -Minimum 1 -Maximum 5) {
-                1 { $PasswordChars += $UpperCaseChars | Get-Random }
-                2 { $PasswordChars += $LowerCaseChars | Get-Random }
-                3 { $PasswordChars += $NumberChars | Get-Random }
-                4 { $PasswordChars += $SpecialChars | Get-Random }
-            }
-        }
-        $newpass = -join $PasswordChars
-        Write-Output $newpass
-    }
-}
-
-
+#################
 
 # Retrieve users and check for upcoming start date
 [array]$Employees = Get-MgUser -All -filter "userType eq 'Member'" -Property Id, displayname, userprincipalname, employeeid, employeehiredate, employeetype, mail
@@ -76,7 +48,7 @@ $CheckDate = (Get-Date).AddDays(2)
 $MatchingUsers = $Employees | Where-Object {($_.EmployeeHireDate -as [datetime]).Date -eq $CheckDate.Date} #| Sort-Object {$_.EmployeeHireDate -as [datetime]} -Descending | Format-Table DisplayName, userPrincipalName, Id, employeeHireDate -AutoSize
 
 # Log: Output matched users based on hire date
-Add-Content -Path $LogFilePath -Value "Matched Users for password reset:"
+Add-Content -Path $LogFilePath -Value "Matched Users for License Assignment:"
 $MatchingUsers | ForEach-Object {
     Add-Content -Path $LogFilePath -Value "Id: $($_.Id)"
     Add-Content -Path $LogFilePath -Value "DisplayName: $($_.DisplayName)"
@@ -85,25 +57,25 @@ $MatchingUsers | ForEach-Object {
     Add-Content -Path $LogFilePath -Value "---------------------------"
 }
 
+#################
+# GroupID - Hardcoding this as v1 has everyone going into the same group. 
+#################
+$groupID = <your_group_id>
+
 # Process matching users with error handling
 if ($MatchingUsers.Count -gt 0) {
     foreach ($User in $MatchingUsers) {
         if ($User.Id -and $User.DisplayName) {
             try {
-                # Generate a new password
-                $NewPassword = New-Password -Length 8 -Count 1
-
                 # Reset the user's password
                 Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate, manager, mail
-                Update-MgUser -UserId $User.Id -PasswordProfile @{
-                    Password = $NewPassword
-                    ForceChangePasswordNextSignIn = $false #Currently when set to true it resets but then does not accept "old" password when resetting. 
-                }
+                Add-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id
                 
+               
                 ########################
                 ## Send Manager Email ##
                 ########################
-
+<#
                 # Grab ID of Manager 
                 $managerId = Get-MgUserManager -UserID $User.Id 
 
@@ -116,13 +88,18 @@ if ($MatchingUsers.Count -gt 0) {
                         subject = "New Employee: $($User.DisplayName)"
                         body = @{
                             contentType = "Text"
-                            content = "Hi $($manager.DisplayName),
+                            content = @"
+Hi $($manager.DisplayName),
 
-This is a reminder you have a new employee starting on $($User.employeeHireDate):
+This is a reminder you have a new employee starting on ($($User.employeeHireDate)):
 
 Name: $($User.DisplayName)
+Job Title: $($User.jobTitle)
 Email: $($User.mail)
-Pass: $($NewPassword)"
+
+
+Please ensure onboarding tasks are completed.
+"@
                         }
                         toRecipients = @(
                             @{
@@ -131,28 +108,28 @@ Pass: $($NewPassword)"
                                     }
                             }
                         )
-                        <#ccRecipients = @(
+                        ccRecipients = @(
                             @{
                                 emailAddress = @{
                                     address = ""
                                 }
                             }
-                        )#>
+                        )
                 }
                 saveToSentItems = "true"
                 }
                 # Send Mail 
                 Send-MgUserMail -UserId "$($manager.Id)" -BodyParameter $params
-                
+#>               
 #################               
                 # Log the password reset action
-                Add-Content -Path $LogFilePath -Value "Password reset for user: $($User.DisplayName)"
-                Write-Output "Password reset for user: $($User.DisplayName)"
+                Add-Content -Path $LogFilePath -Value "License Assigned to user: $($User.DisplayName)"
+                Write-Output "License Assigned to user: $($User.DisplayName)"
                 # Log Email
-                Add-Content -Path $LogFilePath -Value "Password details send to $($manager.mail) "
+                Add-Content -Path $LogFilePath -Value "Email sent to manager: $($manager.mail) "
             } catch {
                 # Log any errors during password reset
-                Add-Content -Path $LogFilePath -Value "Failed to reset password for user: $($User.DisplayName) - Error: $_"
+                Add-Content -Path $LogFilePath -Value "Failed to assign License for user: $($User.DisplayName) - Error: $_"
             }
         } else {
             # Log if user does not have required properties
