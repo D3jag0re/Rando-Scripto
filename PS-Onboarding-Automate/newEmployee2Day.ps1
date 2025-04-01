@@ -16,6 +16,7 @@ Import-module 'az.accounts'
 Import-module 'Microsoft.Graph.Users'
 Import-module 'Microsoft.Graph.Authentication'
 Import-Module 'Microsoft.Graph.Users.Actions'
+Import-Module 'Microsoft.Graph.Groups'
 
 # Connect to Azure with the System Managed Identity
 Connect-AzAccount -Identity
@@ -69,7 +70,7 @@ if ($MatchingUsers.Count -gt 0) {
             try {
                 # Reset the user's password
                 Get-MgUser -UserId $User.Id -Property DisplayName, Id, employeeHireDate, manager, mail
-                Add-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id
+                New-MgGroupMember -GroupId $groupId -DirectoryObjectId $user.Id
                 
                
                 ########################
