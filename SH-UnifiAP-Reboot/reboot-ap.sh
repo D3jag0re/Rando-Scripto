@@ -2,7 +2,7 @@
 
 USER="your_username"
 PASS="your_password"
-LOGFILE="reboot_log_$(date +%Y%m%d_%H%M%S).txt"
+LOGFILE="/var/log/unifi-reboot/reboot_log_$(date +%Y%m%d_%H%M%S).txt"
 
 for i in $(seq -w 21 99); do
     HOST="wap$i"
