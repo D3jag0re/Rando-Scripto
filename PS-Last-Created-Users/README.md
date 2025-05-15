@@ -6,7 +6,7 @@ Best if run on an on-prem Domain Controller as Admin.
 
 ## TO RUN 
 
-Note: This assumes the script is being run on a Domain Controller. 
+Note: This assumes the script is being run on a Domain Controller. Must run Powershell in Admin.
 
 1. Change the variables at the top of the script to suit your needs: 
     - $logPath
