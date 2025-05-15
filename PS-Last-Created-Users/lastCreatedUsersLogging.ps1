@@ -1,4 +1,5 @@
-# This script 
+# This script queries AD to return the last 20 users created and saves the info to a logfile. 
+
 
 # Import the Active Directory module
 Import-Module ActiveDirectory
