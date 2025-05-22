@@ -4,6 +4,7 @@
 # This will help to elimnate timeline issues resulting from the 2 day start-date lookahead. 
 # Comment out the block with {{ Add-MgGroupMember -GroupId $targetGroupId -BodyParameter @{  }} for Dry Run 
 
+# This is written to run in an Azure Automation runbook as it assumes the managed identity
 
 ######################
 ## Import & Connect ##
