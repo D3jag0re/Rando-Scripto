@@ -83,7 +83,7 @@ foreach ($user in $recentUsers) {
 
     if (-not $isInAnyCheckGroup) {
         try {
-            Add-MgGroupMember -GroupId $targetGroupId -BodyParameter @{
+            New-MgGroupMember -GroupId $targetGroupId -BodyParameter @{
                 "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$userId"
             }
 
