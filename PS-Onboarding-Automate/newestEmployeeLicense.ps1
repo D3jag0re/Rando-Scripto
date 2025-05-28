@@ -103,3 +103,61 @@ Add-Content -Path $LogFilePath -Value "`n$((Get-Date).ToString('yyyy-MM-dd HH:mm
 
 $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName
 Set-AzStorageBlobContent -File $LogFilePath -Container $containerName -Blob $logFileName -Context $storageContext -Force
+
+###################################################
+## Send Email Containing Latest 20 Users Created ##
+###################################################
+
+$recipientID = <insert recipientID here>
+
+$recentUsers20 = Get-MgUser -All -Filter "accountEnabled eq true and userType eq 'Member'"  -Property DisplayName,Mail,CreatedDateTime | Sort-Object CreatedDateTime -Descending | Select-Object DisplayName,Mail,CreatedDateTime -First 20
+$userReport = $recentUsers20 | Format-Table DisplayName, Mail, CreatedDateTime -AutoSize | Out-String
+
+$recipient =  Get-MgUser -UserId $recipientID -Property DisplayName, mail, Id
+
+# Start HTML table - Formats output better
+$userReport = @"
+<table border='1' cellpadding='5' cellspacing='0'>
+<tr><th>Display Name</th><th>Email</th><th>Created Date</th></tr>
+"@
+
+# Add each row
+foreach ($user in $recentUsers20) {
+    $userReport += "<tr><td>$($user.DisplayName)</td><td>$($user.Mail)</td><td>$($user.CreatedDateTime.ToString('yyyy-MM-dd HH:mm'))</td></tr>`n"
+}
+
+# Close table
+$userReport += "</table>"
+
+
+# Email Parameters 
+$params = @{
+    message = @{
+        subject = "User Creation Report"
+        body = @{
+            contentType = "HTML"
+            content = @"
+<p>Hi $($recipient.DisplayName),</p>
+<p>Here is the last 20 users created:</p>
+$userReport
+"@
+        }
+        toRecipients = @(
+            @{
+                emailAddress = @{
+                    address = "$($recipient.Mail)"
+                }
+            }
+        )
+            <#ccRecipients = @(
+                @{
+                    emailAddress = @{
+                        address = ""
+                    }
+                }
+            )#>
+    }
+    saveToSentItems = "true"
+    }
+# Send Mail 
+Send-MgUserMail -UserId "$($recipient.Id)" -BodyParameter $params
