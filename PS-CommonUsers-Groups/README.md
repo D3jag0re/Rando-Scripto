@@ -7,3 +7,8 @@ Originally was for those who were in two similiar licensing groups (F3 and E3) i
 ## MS-Graph
 
 This uses Graph top query Entra. 
+
+## To-Run 
+
+1. Change groupIds to the ones you require
+2. Run. 

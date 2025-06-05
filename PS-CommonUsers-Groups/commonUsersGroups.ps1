@@ -1,4 +1,5 @@
 # This script queries entra for users in two groups and returns which users are in both. 
+# Replace groupId1 and groupId2 with the actual group IDs you want to compare.
 
 # Import Microsoft Graph SDK modules
 Import-Module Microsoft.Graph.Users
