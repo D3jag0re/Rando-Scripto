@@ -34,7 +34,9 @@ $activeUsers = foreach ($member in $groupMembers) {
 }
 
 # Show output of disabled users Only 
-$disabledUsers | Select DisplayName, UserPrincipalName
+$disabledUsers | Select-Object DisplayName, UserPrincipalName
+# Optional: Show output of active users
+#$activeUsers | Select-Object DisplayName, UserPrincipalName
 
 # Export to CSV - Uncomment if needed
 # $disabledUsers | Select DisplayName, UserPrincipalName | Export-Csv -Path "DisabledUsers.csv" -NoTypeInformation
