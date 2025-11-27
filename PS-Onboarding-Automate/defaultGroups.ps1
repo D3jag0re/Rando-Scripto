@@ -18,9 +18,9 @@ Connect-MgGraph -Identity
 
 Write-Output "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Starting default group membership check for recent users."
 
-#################################
-## Default Group IDs (Hardcoded)
-#################################
+###################################
+## Default Group IDs (Hardcoded) ##
+###################################
 # These are the groups that every new user *must* be a member of.
 # Replace these with your own default group IDs as needed.
 $defaultGroupIds = @(
@@ -47,9 +47,9 @@ if (-not $recentUsers) {
 
 Write-Output "Found $($recentUsers.Count) users. Checking default group membership..."
 
-######################################
+#######################################
 ## Ensure Each User is in All Groups ##
-######################################
+#######################################
 
 foreach ($user in $recentUsers) {
     $userId            = $user.Id
