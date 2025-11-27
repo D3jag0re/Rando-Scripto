@@ -11,7 +11,7 @@ Import-Module Microsoft.Graph.Users
 Import-Module Microsoft.Graph.Groups
 
 # Connect to Azure with the System Managed Identity
-Connect-AzAccount -Identiy
+Connect-AzAccount -Identity
 
 # Connect to Graph with the System Managed Identity
 Connect-MgGraph -Identity
