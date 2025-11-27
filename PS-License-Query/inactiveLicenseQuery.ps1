@@ -4,7 +4,7 @@
 Connect-MgGraph -Scopes "User.Read.All", "Group.Read.All"
 
 # Replace with your licensing group object ID
-$groupId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+#$groupId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 # Get members of the group who are users and disabled
 $groupMembers = Get-MgGroupMember -GroupId $groupId -All 
