@@ -71,9 +71,9 @@ foreach ($f in $spFiles) {
     $spIndex[$f.Name] = $f
 }
 
-#############################################################
+##############################################################
 # 5. Find files that are local but NOT present in SharePoint #
-#############################################################
+##############################################################
 
 $localOnly = foreach ($lf in $localFiles) {
     if (-not $spIndex.ContainsKey($lf.Name)) {
