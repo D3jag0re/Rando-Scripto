@@ -1,0 +1,14 @@
+# Connect to Graph
+Connect-MgGraph -Scopes "User.Read.All"
+
+# Get all users with Department populated
+$departments = Get-MgUser -All -Property Department |
+    Where-Object { $_.Department -and $_.Department.Trim() -ne "" } |
+    Select-Object -ExpandProperty Department |
+    Sort-Object -Unique
+
+# Output
+$departments
+
+# .csv Export
+$departments | Export-Csv -Path ".\UniqueDepartments.csv" -NoTypeInformation
